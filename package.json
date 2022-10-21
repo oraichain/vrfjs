@@ -14,8 +14,13 @@
   "description": "distributed key generation in JS",
   "main": "index.js",
   "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.29.2",
+    "@cosmjs/crypto": "^0.29.2",
+    "@cosmjs/proto-signing": "^0.29.2",
+    "@cosmjs/stargate": "^0.29.2",
     "@oraichain/cosmosjs": "^0.0.70",
     "@project-serum/anchor": "^0.19.1-beta.1",
+    "axios": "1.1.0",
     "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
     "ethereum-public-key-to-address": "^0.0.5",

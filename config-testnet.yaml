@@ -1,4 +1,5 @@
-url: http://3.143.254.222:1317
+rpc: http://testnet-rpc.orai.io
+lcd: http://testnet-lcd.orai.io
 chain_id: Oraichain-testnet
 denom: orai
 contract: orai1sj99eh3ltexddmsv85097wtxh6ngthwyaw7pq5

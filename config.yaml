@@ -1,4 +1,5 @@
-url: http://lcd.orai.io
+rpc: http://rpc.orai.io
+lcd: http://lcd.orai.io
 chain_id: Oraichain
 denom: orai
 contract: orai15lv4hxxqew2jhfayfmad7y40zfr8zmgfulqdxj

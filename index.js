@@ -1,16 +1,18 @@
 const fs = require('fs');
 const YAML = require('yaml');
+const Cosmjs = require('./cosmjs');
 const Cosmos = require('@oraichain/cosmosjs').default;
 const blsdkgJs = require('./pkg/blsdkg_js');
+const dotenv = require("dotenv");
+dotenv.config({
+  path: `.env${process.env.NODE_ENV ? "." + process.env.NODE_ENV : ""}`,
+}).parsed;
 
 const {
-  queryWasm,
-  executeWasm,
   encrypt,
   decrypt,
   delay,
   convertOffset,
-  env,
   signSignature
 } = require('./utils');
 
@@ -24,10 +26,11 @@ const config = YAML.parse(
     .readFileSync(path)
     .toString()
 );
-const message = Cosmos.message;
-const cosmos = new Cosmos(config.url, config.chain_id);
-cosmos.setBech32MainPrefix(config.denom || 'orai');
-const childKey = cosmos.getChildKey(env.MNEMONIC);
+const cosmos = new Cosmos(config.lcd, config.chainId);
+cosmos.setBech32MainPrefix('orai');
+const childKey = cosmos.getChildKey(process.env.MNEMONIC);
+
+const cosmJs = new Cosmjs(config.chainId, config.rpc, config.lcd, process.env.MNEMONIC);
 
 const address = cosmos.getAddress(childKey);
 console.log('address: ', address);
@@ -36,8 +39,7 @@ let skShare = null;
 let currentMember = null;
 let members = null;
 const run = async () => {
-  const { status, threshold, total, dealer } = await queryWasm(
-    cosmos,
+  const { status, threshold, total, dealer } = await cosmJs.query(
     config.contract,
     {
       contract_info: {}
@@ -93,7 +95,7 @@ const getMembers = async (total) => {
   let offset = convertOffset('');
   let members = [];
   do {
-    const tempMembers = await queryWasm(cosmos, config.contract, {
+    const tempMembers = await cosmJs.query(config.contract, {
       get_members: {
         offset,
         limit: 5
@@ -163,7 +165,7 @@ const processDealer = async (members, threshold, total) => {
   // console.log(commits, rows);
 
   // finaly share the dealer
-  const response = await executeWasm(cosmos, childKey, config.contract, {
+  const response = await cosmJs.execute(config.contract, {
     share_dealer: {
       share: {
         commits,
@@ -212,7 +214,7 @@ const processRow = async (skShare) => {
   const pkShare = Buffer.from(skShare.get_pk()).toString('base64');
   // finaly share the dealer
 
-  const response = await executeWasm(cosmos, childKey, config.contract, {
+  const response = await cosmJs.execute(config.contract, {
     share_row: {
       share: { pk_share: pkShare }
     }
@@ -224,7 +226,7 @@ const processRequest = async (skShare) => {
   console.log('process request');
 
   // get current handling round
-  const roundInfo = await queryWasm(cosmos, config.contract, {
+  const roundInfo = await cosmJs.query(config.contract, {
     current_handling: {}
   });
 
@@ -271,16 +273,13 @@ const processRequest = async (skShare) => {
   // console.log(address, shareSig);
 
   // share the signature, more gas because the verify operation, especially the last one
-  const response = await executeWasm(
-    cosmos,
-    childKey,
+  const response = await cosmJs.execute(
     config.contract,
     {
       share_sig: {
         share
       }
     },
-    { fees: env.SHARE_SIG_FEES, gas: env.SHARE_SIG_GAS }
   );
   console.log(response);
 };
@@ -300,7 +299,7 @@ const runInterval = async (interval = 5000) => {
 
 // for testing purpose, input is base64 to be pass as Buffer
 const requestRandom = async (input) => {
-  const response = await executeWasm(cosmos, childKey, config.contract, {
+  const response = await cosmJs.execute(config.contract, {
     request_random: {
       input
     }
@@ -310,7 +309,7 @@ const requestRandom = async (input) => {
 
 const ping = async () => {
   // collect info about round and round jump, ok to ping => ping
-  const round = await queryWasm(cosmos, config.ping_contract, {
+  const round = await cosmJs.query(config.ping_contract, {
     get_round: address
   });
   // valid case
@@ -319,7 +318,7 @@ const ping = async () => {
     round.round_info.height === 0
   ) {
     console.log('ready to ping');
-    const response = await executeWasm(cosmos, childKey, config.ping_contract, {
+    const response = await cosmJs.execute(config.ping_contract, {
       ping: {}
     });
     console.log(response);
@@ -338,7 +337,7 @@ const addPing = async (interval = 5000) => {
   }
 };
 
-console.log('Oraichain VRF, version 3.1');
+console.log('Oraichain VRF, version 4.0');
 runInterval(config.interval);
 addPing(config.ping_interval);
 

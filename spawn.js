@@ -5,7 +5,7 @@ let array = [
     'dev2',
 ];
 
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < array.length; i++) {
     let fileName = 'index.js';
     // if (i > 2) {
     //     fileName = 'index-error.js'

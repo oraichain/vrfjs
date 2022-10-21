@@ -1,0 +1,59 @@
+const { SigningCosmWasmClient } = require("@cosmjs/cosmwasm-stargate");
+const { stringToPath } = require("@cosmjs/crypto");
+const { Decimal } = require("@cosmjs/math");
+const { DirectSecp256k1HdWallet } = require("@cosmjs/proto-signing");
+const { GasPrice } = require("@cosmjs/stargate");
+const axios = require('axios').default;
+
+class Cosmjs {
+    constructor(chainId, rpc, lcd, mnemonic) {
+        this.denom = "orai";
+        this.prefix = "orai";
+        this.chainId = chainId;
+        this.rpc = rpc;
+        this.lcd = lcd;
+        this.mnemonic = mnemonic;
+    }
+
+    getClientData = async (wallet) => {
+        const [firstAccount] = await wallet.getAccounts();
+
+        const client = await SigningCosmWasmClient.connectWithSigner(this.rpc, wallet, {
+            gasPrice: new GasPrice(Decimal.fromUserInput('0', 6), this.denom),
+            prefix: this.prefix
+        });
+
+        return { account: firstAccount, client };
+    }
+
+    collectWallet = async () => {
+        const wallet = await DirectSecp256k1HdWallet.fromMnemonic(this.mnemonic, {
+            hdPaths: [stringToPath("m/44'/118'/0'/0/0")],
+            prefix: this.prefix
+        });
+        return wallet;
+    };
+
+    execute = async (address, inputData, funds) => {
+        const wallet = await this.collectWallet();
+
+        const { account, client } = await this.getClientData(wallet);
+
+        const result = await client.execute(account.address, address, inputData, 'auto', undefined, funds ? funds : undefined);
+        console.log("result execute contract: ", result);
+        // LEGACY: backward compatibility for component files => need to return tx_response object 
+        return { ...result, tx_response: { txhash: result.transactionHash } };
+    }
+
+    async query(address, input) {
+        const param = Buffer.from(JSON.stringify(input)).toString('base64');
+        const { data } = await this.get(`/cosmwasm/wasm/v1/contract/${address}/smart/${param}`);
+        return data;
+    }
+
+    async get(url) {
+        return axios.get(`${this.lcd}${url}`).then((res) => res.data).catch(err => err.response.data);
+    }
+}
+
+module.exports = Cosmjs;
