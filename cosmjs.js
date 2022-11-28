@@ -3,7 +3,7 @@ const { stringToPath } = require("@cosmjs/crypto");
 const { Decimal } = require("@cosmjs/math");
 const { DirectSecp256k1HdWallet } = require("@cosmjs/proto-signing");
 const { GasPrice } = require("@cosmjs/stargate");
-const axios = require('axios').default;
+const Cosmos = require('@oraichain/cosmosjs').default;
 
 class Cosmjs {
     constructor(chainId, rpc, lcd, mnemonic) {
@@ -52,7 +52,8 @@ class Cosmjs {
     }
 
     async get(url) {
-        return axios.get(`${this.lcd}${url}`).then((res) => res.data).catch(err => err.response.data);
+        const cosmos = new Cosmos(this.lcd, this.chainId);
+        return cosmos.get(url);
     }
 }
 
