@@ -34,13 +34,12 @@ class Cosmjs {
         return wallet;
     };
 
-    execute = async (address, inputData, funds) => {
+    execute = async (address, inputData, funds, gas_multiplier = 1.7) => {
         const wallet = await this.collectWallet();
 
         const { account, client } = await this.getClientData(wallet);
 
-        const result = await client.execute(account.address, address, inputData, 'auto', undefined, funds ? funds : undefined);
-        console.log("result execute contract: ", result);
+        const result = await client.execute(account.address, address, inputData, gas_multiplier, undefined, funds ? funds : undefined);
         // LEGACY: backward compatibility for component files => need to return tx_response object 
         return { ...result, tx_response: { txhash: result.transactionHash } };
     }

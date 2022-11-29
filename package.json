@@ -18,7 +18,7 @@
     "@cosmjs/crypto": "^0.29.2",
     "@cosmjs/proto-signing": "^0.29.2",
     "@cosmjs/stargate": "^0.29.2",
-    "@oraichain/cosmosjs": "^0.1.10",
+    "@oraichain/cosmosjs": "0.0.70",
     "@project-serum/anchor": "^0.19.1-beta.1",
     "crypto": "^1.0.1",
     "dotenv": "^10.0.0",

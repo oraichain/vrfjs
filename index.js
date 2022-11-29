@@ -172,7 +172,7 @@ const processDealer = async (members, threshold, total) => {
         rows
       }
     }
-  });
+  }, config.gas_multiplier);
 
   // log response then return
   console.log(response);
@@ -337,7 +337,7 @@ const addPing = async (interval = 5000) => {
   }
 };
 
-console.log('Oraichain VRF, version 4.0');
+console.log('Oraichain VRF, version 4.0.1');
 runInterval(config.interval);
 addPing(config.ping_interval);
 
