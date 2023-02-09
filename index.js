@@ -172,7 +172,7 @@ const processDealer = async (members, threshold, total) => {
         rows
       }
     }
-  }, config.gas_multiplier);
+  }, undefined, config.gas_multiplier, config.gas_price);
 
   // log response then return
   console.log(response);
@@ -218,7 +218,7 @@ const processRow = async (skShare) => {
     share_row: {
       share: { pk_share: pkShare }
     }
-  });
+  }, undefined, config.gas_multiplier, config.gas_price);
   console.log(response);
 };
 
@@ -279,7 +279,7 @@ const processRequest = async (skShare) => {
       share_sig: {
         share
       }
-    },
+    }, undefined, config.gas_multiplier, config.gas_price
   );
   console.log(response);
 };
@@ -303,7 +303,7 @@ const requestRandom = async (input) => {
     request_random: {
       input
     }
-  });
+  }, undefined, config.gas_multiplier, config.gas_price);
   console.log(response);
 };
 
@@ -320,7 +320,7 @@ const ping = async () => {
     console.log('ready to ping');
     const response = await cosmJs.execute(config.ping_contract, {
       ping: {}
-    });
+    }, undefined, config.gas_multiplier, config.gas_price);
     console.log(response);
   }
 };
@@ -337,7 +337,7 @@ const addPing = async (interval = 5000) => {
   }
 };
 
-console.log('Oraichain VRF, version 4.0.1');
+console.log('Oraichain VRF, version 4.0.2');
 runInterval(config.interval);
 addPing(config.ping_interval);
 

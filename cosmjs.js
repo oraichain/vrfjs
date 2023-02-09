@@ -15,11 +15,11 @@ class Cosmjs {
         this.mnemonic = mnemonic;
     }
 
-    getClientData = async (wallet) => {
+    getClientData = async (wallet, gasPrice) => {
         const [firstAccount] = await wallet.getAccounts();
 
         const client = await SigningCosmWasmClient.connectWithSigner(this.rpc, wallet, {
-            gasPrice: new GasPrice(Decimal.fromUserInput('0', 6), this.denom),
+            gasPrice: GasPrice.fromString(`${gasPrice}${this.denom}`),
             prefix: this.prefix
         });
 
@@ -34,10 +34,10 @@ class Cosmjs {
         return wallet;
     };
 
-    execute = async (address, inputData, funds, gas_multiplier = 1.7) => {
+    execute = async (address, inputData, funds, gas_multiplier = 1.7, gasPrice = 0.003) => {
         const wallet = await this.collectWallet();
 
-        const { account, client } = await this.getClientData(wallet);
+        const { account, client } = await this.getClientData(wallet, gasPrice);
 
         const result = await client.execute(account.address, address, inputData, gas_multiplier, undefined, funds ? funds : undefined);
         // LEGACY: backward compatibility for component files => need to return tx_response object 
