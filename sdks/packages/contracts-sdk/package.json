@@ -1,0 +1,18 @@
+{
+  "name": "@oraichain/tonbridge-contracts-sdk",
+  "version": "1.3.0",
+  "main": "build/index.js",
+  "files": [
+    "build/",
+    "@types"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "gitHead": "c6b336fed6116777da173a2eb6a70f603db1649f"
+}

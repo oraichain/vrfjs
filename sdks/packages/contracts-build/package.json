@@ -1,0 +1,14 @@
+{
+  "name": "@oraichain/tonbridge-contracts-build",
+  "version": "1.2.5",
+  "main": "build/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "files": [
+    "build/",
+    "data/"
+  ],
+  "gitHead": "a2b3a9fc3ef3e70d193876adeb6142fd128a2c0c"
+}
