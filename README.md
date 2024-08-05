@@ -1,3 +1,8 @@
 ## Build the library
 
-`wasm-pack build --target web`
+```bash
+# commonjs
+wasm-pack build --target nodejs
+# esm
+wasm-pack build --target web
+```

@@ -1,8 +1,8 @@
-const fs = require('fs');
-const YAML = require('yaml');
-const Cosmjs = require('./cosmjs');
-const Cosmos = require('@oraichain/cosmosjs').default;
-const blsdkgJs = require('./pkg/blsdkg_js');
+const fs = require("fs");
+const YAML = require("yaml");
+const Cosmjs = require("./cosmjs");
+const Cosmos = require("@oraichain/cosmosjs").default;
+const blsdkgJs = require("./pkg/blsdkg_js");
 const dotenv = require("dotenv");
 dotenv.config({
   path: `.env${process.env.NODE_ENV ? "." + process.env.NODE_ENV : ""}`,
@@ -13,28 +13,29 @@ const {
   decrypt,
   delay,
   convertOffset,
-  signSignature
-} = require('./utils');
+  signSignature,
+} = require("./utils");
 
-console.log("testnet: ", process.env.TESTNET)
-const configPath = process.env.TESTNET ? 'config-testnet.yaml' : 'config.yaml';
-const path = process.cwd() + '/' + configPath;
+console.log("testnet: ", process.env.TESTNET);
+const configPath = process.env.TESTNET ? "config-testnet.yaml" : "config.yaml";
+const path = process.cwd() + "/" + configPath;
 console.log("path: ", path);
 
-const config = YAML.parse(
-  fs
-    .readFileSync(path)
-    .toString()
-);
+const config = YAML.parse(fs.readFileSync(path).toString());
 const cosmos = new Cosmos(config.lcd, config.chainId);
-cosmos.setBech32MainPrefix('orai');
+cosmos.setBech32MainPrefix("orai");
 const childKey = cosmos.getChildKey(process.env.MNEMONIC);
 
-const cosmJs = new Cosmjs(config.chainId, config.rpc, config.lcd, process.env.MNEMONIC);
+const cosmJs = new Cosmjs(
+  config.chainId,
+  config.rpc,
+  config.lcd,
+  process.env.MNEMONIC
+);
 
 const address = cosmos.getAddress(childKey);
-console.log('address: ', address);
-console.log('public key: ', childKey.publicKey.toString('base64'));
+console.log("address: ", address);
+console.log("public key: ", childKey.publicKey.toString("base64"));
 let skShare = null;
 let currentMember = null;
 let members = null;
@@ -42,64 +43,66 @@ const run = async () => {
   const { status, threshold, total, dealer } = await cosmJs.query(
     config.contract,
     {
-      contract_info: {}
+      contract_info: {},
     }
   );
   console.log("total before getting members: ", total);
 
   // first time or WaitForRequest
-  if (status !== 'WaitForRequest' || !members) {
+  if (status !== "WaitForRequest" || !members) {
     members = await getMembers(total);
     console.log("total: ", members);
     // check wherther we has done sharing ?
     currentMember = members.find((m) => !m.deleted && m.address === address);
     if (!currentMember) {
-      return console.log('we are not in the group');
+      return console.log("we are not in the group");
     }
   }
   console.log("status: ", status);
 
   switch (status) {
-    case 'WaitForDealer':
+    case "WaitForDealer":
       // re-init data
       return await processDealer(members, threshold, total);
-    case 'WaitForRow':
-    case 'WaitForRequest':
+    case "WaitForRow":
+    case "WaitForRequest":
       if (!currentMember) {
-        return console.log('we are not in the group');
+        return console.log("we are not in the group");
       }
       // skShare is changed only when members are updated
       skShare = await getSkShare(members, dealer);
       if (!skShare) {
-        return console.log('row share is invalid');
+        return console.log("row share is invalid");
       }
-      if (status === 'WaitForRow') {
+      if (status === "WaitForRow") {
         if (!currentMember.shared_row) {
           // update shared pubkey for contract to verify sig
           await processRow(skShare);
           members = null;
         } else {
-          console.log('Finished sharing row. Currently waiting for all members to share row');
+          console.log(
+            "Finished sharing row. Currently waiting for all members to share row"
+          );
         }
         return;
       }
       // default process each request
       return await processRequest(skShare);
     default:
-      return console.log('Unknown status', status);
+      return console.log("Unknown status", status);
   }
 };
 
 // TODO: assume members are small, for big one should get 10 by 10
 const getMembers = async (total) => {
-  let offset = convertOffset('');
+  let offset = convertOffset("");
   let members = [];
   do {
     const tempMembers = await cosmJs.query(config.contract, {
       get_members: {
         offset,
-        limit: 5
-      }
+        limit: 5,
+      },
     });
     if (!tempMembers || tempMembers.code || tempMembers.length === 0) continue;
     members = members.concat(tempMembers);
@@ -121,17 +124,17 @@ const getDealers = async (members) => {
 };
 
 const processDealer = async (members, threshold, total) => {
-  console.log('process dealer share');
+  console.log("process dealer share");
 
   const bibars = blsdkgJs.generate_bivars(threshold, total);
 
   const commits = bibars.get_commits().map(Buffer.from);
   const rows = bibars.get_rows().map(Buffer.from);
 
-  console.log('member length: ', members.length);
+  console.log("member length: ", members.length);
   if (members.length !== total) {
     return console.log(
-      'Member length is not full, should not deal shares for others'
+      "Member length is not full, should not deal shares for others"
     );
   }
   // then sort members by index for sure to encrypt by their public key
@@ -139,40 +142,46 @@ const processDealer = async (members, threshold, total) => {
 
   if (currentMember.shared_dealer) {
     return console.log(
-      'we are done dealer sharing, currently waiting for others to move on to the next phase'
+      "we are done dealer sharing, currently waiting for others to move on to the next phase"
     );
   }
 
-  if (currentMember.pubkey !== childKey.publicKey.toString('base64')) {
+  if (currentMember.pubkey !== childKey.publicKey.toString("base64")) {
     return console.log(
-      'Pubkey is not equal to the member stored on the contract. Cannot be a dealer'
+      "Pubkey is not equal to the member stored on the contract. Cannot be a dealer"
     );
   }
 
-  commits[0] = commits[0].toString('base64');
+  commits[0] = commits[0].toString("base64");
   for (let i = 0; i < rows.length; ++i) {
     // no need to check pubkey the same as address, they may use their desired keypair, bydefault it is the private key
     // remember commit[0] is the sum commit
     rows[i] = encrypt(
-      Buffer.from(members[i].pubkey, 'base64'),
+      Buffer.from(members[i].pubkey, "base64"),
       childKey.privateKey,
       commits[i + 1],
       rows[i]
-    ).toString('base64');
-    commits[i + 1] = commits[i + 1].toString('base64');
+    ).toString("base64");
+    commits[i + 1] = commits[i + 1].toString("base64");
   }
 
   // console.log(commits, rows);
 
   // finaly share the dealer
-  const response = await cosmJs.execute(config.contract, {
-    share_dealer: {
-      share: {
-        commits,
-        rows
-      }
-    }
-  }, undefined, config.gas_multiplier, config.gas_price);
+  const response = await cosmJs.execute(
+    config.contract,
+    {
+      share_dealer: {
+        share: {
+          commits,
+          rows,
+        },
+      },
+    },
+    undefined,
+    config.gas_multiplier,
+    config.gas_price
+  );
 
   // log response then return
   console.log(response);
@@ -181,19 +190,21 @@ const processDealer = async (members, threshold, total) => {
 const getSkShare = async (members, dealer) => {
   const dealers = await getDealers(members);
   if (dealers.length !== dealer) {
-    return console.log("The number of dealers is not valid, cannot verify Sk share");
+    return console.log(
+      "The number of dealers is not valid, cannot verify Sk share"
+    );
   }
   const commits = [];
   const rows = [];
   for (const dealer of dealers) {
     const encryptedRow = Buffer.from(
       dealer.shared_dealer.rows[currentMember.index],
-      'base64'
+      "base64"
     );
-    const dealerPubkey = Buffer.from(dealer.pubkey, 'base64');
+    const dealerPubkey = Buffer.from(dealer.pubkey, "base64");
     const commit = Buffer.from(
       dealer.shared_dealer.commits[currentMember.index + 1],
-      'base64'
+      "base64"
     );
     const row = decrypt(
       childKey.privateKey,
@@ -211,61 +222,63 @@ const getSkShare = async (members, dealer) => {
 
 const processRow = async (skShare) => {
   // we update public key share for smart contract to verify and keeps this skShare to sign message for each round
-  const pkShare = Buffer.from(skShare.get_pk()).toString('base64');
+  const pkShare = Buffer.from(skShare.get_pk()).toString("base64");
   // finaly share the dealer
 
-  const response = await cosmJs.execute(config.contract, {
-    share_row: {
-      share: { pk_share: pkShare }
-    }
-  }, undefined, config.gas_multiplier, config.gas_price);
+  const response = await cosmJs.execute(
+    config.contract,
+    {
+      share_row: {
+        share: { pk_share: pkShare },
+      },
+    },
+    undefined,
+    config.gas_multiplier,
+    config.gas_price
+  );
   console.log(response);
 };
 
 const processRequest = async (skShare) => {
-  console.log('process request');
+  console.log("process request");
 
   // get current handling round
   const roundInfo = await cosmJs.query(config.contract, {
-    current_handling: {}
+    current_handling: {},
   });
 
   if (!roundInfo) {
-    return console.log('there is no round to process');
+    return console.log("there is no round to process");
   }
 
-  // if (roundInfo.combined_sig) {
-  //   return console.log(
-  //     'Round has been done with randomness',
-  //     roundInfo.randomness
-  //   );
-  // }
-
-  if (roundInfo.sigs.find((sig) => sig.sender === address) && !roundInfo.combined_sig) {
+  if (
+    roundInfo.sigs.find((sig) => sig.sender === address) &&
+    !roundInfo.combined_sig
+  ) {
     return console.log(
-      'You have successfully submitted your signature share, waiting to finish the round'
+      "You have successfully submitted your signature share, waiting to finish the round"
     );
   }
   if (roundInfo.signed_combined_sig) {
-    return console.log(
-      'The round has finished'
-    );
+    return console.log("The round has finished");
   }
 
   // otherwise add the sig contribution from skShare
   const sig = skShare.sign_g2(
-    Buffer.from(roundInfo.input, 'base64'),
+    Buffer.from(roundInfo.input, "base64"),
     BigInt(roundInfo.round)
   );
 
   // sign on the sig
   let signedSignature = "";
   if (!roundInfo.signed_combined_sig && roundInfo.combined_sig) {
-    signedSignature = Buffer.from(signSignature(roundInfo.randomness, cosmos.getECPairPriv(childKey))).toString('base64');
+    signedSignature = Buffer.from(
+      signSignature(roundInfo.randomness, cosmos.getECPairPriv(childKey))
+    ).toString("base64");
   }
 
   const share = {
-    sig: Buffer.from(sig).toString('base64'),
+    sig: Buffer.from(sig).toString("base64"),
     round: roundInfo.round,
     signed_sig: signedSignature,
   };
@@ -277,9 +290,12 @@ const processRequest = async (skShare) => {
     config.contract,
     {
       share_sig: {
-        share
-      }
-    }, undefined, config.gas_multiplier, config.gas_price
+        share,
+      },
+    },
+    undefined,
+    config.gas_multiplier,
+    config.gas_price
   );
   console.log(response);
 };
@@ -290,7 +306,7 @@ const runInterval = async (interval = 5000) => {
     try {
       await run();
     } catch (error) {
-      console.log('error while handling the vrf: ', error);
+      console.log("error while handling the vrf: ", error);
       members = null;
     }
     await delay(interval);
@@ -299,46 +315,21 @@ const runInterval = async (interval = 5000) => {
 
 // for testing purpose, input is base64 to be pass as Buffer
 const requestRandom = async (input) => {
-  const response = await cosmJs.execute(config.contract, {
-    request_random: {
-      input
-    }
-  }, undefined, config.gas_multiplier, config.gas_price);
+  const response = await cosmJs.execute(
+    config.contract,
+    {
+      request_random: {
+        input,
+      },
+    },
+    undefined,
+    config.gas_multiplier,
+    config.gas_price
+  );
   console.log(response);
 };
 
-const ping = async () => {
-  // collect info about round and round jump, ok to ping => ping
-  const round = await cosmJs.query(config.ping_contract, {
-    get_round: address
-  });
-  // valid case
-  if (
-    round.current_height - round.round_info.height >= round.round_jump ||
-    round.round_info.height === 0
-  ) {
-    console.log('ready to ping');
-    const response = await cosmJs.execute(config.ping_contract, {
-      ping: {}
-    }, undefined, config.gas_multiplier, config.gas_price);
-    console.log(response);
-  }
-};
-
-// run interval to ping, default is 5000ms block confirmed
-const addPing = async (interval = 5000) => {
-  while (true) {
-    try {
-      await ping();
-    } catch (error) {
-      console.log('error while adding ping: ', error);
-    }
-    await delay(interval);
-  }
-};
-
-console.log('Oraichain VRF, version 4.0.2');
+console.log("Oraichain VRF, version 4.0.2");
 runInterval(config.interval);
-addPing(config.ping_interval);
 
 // TODO: add try catch and improve logs
