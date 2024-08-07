@@ -26,7 +26,10 @@
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "pkg": "^5.8.0"
+    "@oraichain/cw-simulate": "^2.8.97",
+    "pkg": "^5.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   },
   "pkg": {
     "assets": "**/*"
