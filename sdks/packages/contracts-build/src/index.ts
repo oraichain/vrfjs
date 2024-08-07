@@ -2,12 +2,12 @@ import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { readFileSync } from "fs";
 import path from "path";
 
-export type ContractName = "vrf";
+export type ContractName = "vrfdkg";
 
 const contractDir = path.join(__dirname, "..", "data");
 
 export const getContractDir = (
-  name: ContractName = "vrf"
+  name: ContractName = "vrfdkg"
 ) => {
   return path.join(contractDir, name + ".wasm");
 };

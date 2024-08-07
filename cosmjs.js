@@ -67,6 +67,7 @@ class Cosmjs {
     );
     return data;
   }
+  
 
   async get(url) {
     const cosmos = new Cosmos(this.lcd, this.chainId);

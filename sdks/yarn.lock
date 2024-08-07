@@ -1352,15 +1352,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oraichain/tonbridge-contracts-build@workspace:packages/contracts-build":
+"@oraichain/vrf-contracts-build@workspace:packages/contracts-build":
   version: 0.0.0-use.local
-  resolution: "@oraichain/tonbridge-contracts-build@workspace:packages/contracts-build"
+  resolution: "@oraichain/vrf-contracts-build@workspace:packages/contracts-build"
   languageName: unknown
   linkType: soft
 
-"@oraichain/tonbridge-contracts-sdk@workspace:packages/contracts-sdk":
+"@oraichain/vrf-contracts-sdk@workspace:packages/contracts-sdk":
   version: 0.0.0-use.local
-  resolution: "@oraichain/tonbridge-contracts-sdk@workspace:packages/contracts-sdk"
+  resolution: "@oraichain/vrf-contracts-sdk@workspace:packages/contracts-sdk"
   languageName: unknown
   linkType: soft
 

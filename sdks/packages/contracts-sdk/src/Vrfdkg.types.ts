@@ -52,7 +52,7 @@ export interface SharedRowMsg {
 export interface ShareSigMsg {
   round: number;
   sig: Binary;
-  signed_sig: Binary;
+  signed_sig?: Binary | null;
 }
 export type QueryMsg = {
   contract_info: {};
