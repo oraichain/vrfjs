@@ -1,5 +1,13 @@
 # How to use VRF on Oraichain
+
+1. Install required libraries
+```sh
+yarn add @cosmjs/cosmwasm-stargate @cosmjs/stargate cosmjs-utils @oraichain/vrf-contracts-sdk
+```
+
+2. Add get random function
 ```js
+  // file: ./vrf.ts
   import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
   import { GasPrice } from '@cosmjs/stargate';
   import { getOfflineSignerAmino } from 'cosmjs-utils';
@@ -27,25 +35,40 @@
     gasPrice: GasPrice.fromString(`${gasPrice}${denom}`),
   });
 
-
   // init contract client
   const vrfContractClient = new VrfdkgClient(signClient, account.address, contractAddress);
 
-  // save round to check
-  let round: number;
-  // make request
-  const response = await vrfContractClient.requestRandom({ input });
-  // get round
-  const wasmEvent = response.logs[0].events.find((e) => e.type === 'wasm');
-  wasmEvent.attributes.forEach((attr) => {
-    if (attr.key === 'round') {
-      round = +attr.value;
-    }
-  });
+  // full-flow function
+  export const requestRandom = async (inputText: Binary, funds: Coin[] = [{ denom: 'orai', amount: '1' }]) => {
+    // save round to check
+    let round: number;
+    // make request
+    const response = await vrfContractClient.requestRandom({ input: Buffer.from(inputText).toString('base64') }, 'auto', null, funds);
+    // get round
+    const wasmEvent = response.logs[0].events.find((e) => e.type === 'wasm');
+    wasmEvent.attributes.forEach((attr) => {
+      if (attr.key === 'round') {
+        round = +attr.value;
+      }
+    });
 
-  // check result
-  const result = await vrfContractClient.getRound({ round });
-  const { randomness } = result;
-  console.log('randomness:', randomness);
-  // NOTE: Result may not be available, you have to wait until VRF contract collect enough signatures from runner
+    // check result
+    do {
+      const roundInfo = await vrfContractClient.getRound({ round });
+
+      // result may not be available, you have to wait until VRF contract collect enough signatures from runner
+      if (roundInfo.randomness) {
+        return roundInfo.randomness;
+      }
+      // sleep for 1 seconds
+      await sleep(1e3);
+    } while (true);
+  };
+```
+
+3. Usage
+```js
+import { requestRandom } from './vrf';
+
+requestRandom('my lucky number today').then((result) => { console.log('result:', result) });
 ```
