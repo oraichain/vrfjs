@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2.78"
 wasm-bindgen-test = "0.3.28"
 serde = { version = "1.0.104", features = ["derive"] }
-blsdkg = { path = "../blsdkg" }
+blsdkg = { git = "https://github.com/oraichain/oraiwasm.git", rev = "10cecb0339e9d21291f9c9d56154b74179d92166" }
 rand = { version = "0.7.3", features = ["wasm-bindgen"] }
 js-sys = "0.3.55"
 pairing = "0.16.0"

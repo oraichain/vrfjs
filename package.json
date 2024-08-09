@@ -7,6 +7,7 @@
   "bin": "index.js",
   "scripts": {
     "start": "node index.js",
+    "request-random": "tsx vrf.ts",
     "prepackage": "mkdir -p dist && cp package.json -r pkg *.js dist",
     "package": "pkg dist --compress Brotli"
   },
@@ -14,24 +15,28 @@
   "description": "distributed key generation in JS",
   "main": "index.js",
   "dependencies": {
-    "@cosmjs/cosmwasm-stargate": "^0.29.2",
-    "@cosmjs/crypto": "^0.29.2",
-    "@cosmjs/proto-signing": "^0.29.2",
-    "@cosmjs/stargate": "^0.29.2",
+    "@cosmjs/cosmwasm-stargate": "^0.31.3",
+    "@cosmjs/crypto": "^0.31.3",
+    "@cosmjs/proto-signing": "^0.31.3",
+    "@cosmjs/stargate": "^0.31.3",
+    "@oraichain/common": "^1.0.3",
     "@oraichain/cosmosjs": "0.0.70",
-    "@project-serum/anchor": "^0.19.1-beta.1",
+    "@oraichain/vrf-contracts-sdk": "^1.0.0",
     "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
-    "ethereum-public-key-to-address": "^0.0.5",
     "futoin-hkdf": "^1.4.2",
     "js-sha3": "^0.8.0",
-    "merkletreejs": "^0.2.27",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "pkg": "^5.8.0"
+    "@oraichain/cw-simulate": "^2.8.97",
+    "pkg": "^5.8.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
   },
   "pkg": {
     "assets": "**/*"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
