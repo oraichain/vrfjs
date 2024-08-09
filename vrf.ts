@@ -1,22 +1,9 @@
-# How to use VRF on Oraichain
-
-## Prerequisites
-
-- NPM
-- Yarn (optional)
-
-1. Install required libraries
-```sh
-yarn
-```
-
-2. Add get random function
-```ts
 // file: ./vrf.ts
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import { GasPrice } from '@cosmjs/stargate';
 import { getOfflineSignerAmino } from 'cosmjs-utils';
 import { VrfdkgClient } from '@oraichain/vrf-contracts-sdk';
+import { setTimeout as sleep } from "timers/promises";
 
 const rpc = 'https://rpc.orai.io';
 const gasPrice = 0.003;
@@ -69,11 +56,3 @@ export const requestRandom = async (inputText: Binary, funds: Coin[] = [{ denom:
     await sleep(1e3);
   } while (true);
 };
-```
-
-3. Usage
-```ts
-import { requestRandom } from './vrf';
-
-requestRandom('my lucky number today').then((result) => { console.log('result:', result) });
-```
