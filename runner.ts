@@ -1,10 +1,10 @@
 import { setTimeout as sleep } from "timers/promises";
-import { VrfdkgClient } from "./sdks/packages/contracts-sdk/src";
 import blsdkgJs from "./pkg/blsdkg_js";
-import { encrypt, decrypt, convertOffset, signSignature } from "./utils";
+import { encrypt, decrypt, signSignature } from "./utils";
 import * as bip32 from "bip32";
 import Cosmos from "@oraichain/cosmosjs";
-import { Member } from "./sdks/packages/contracts-sdk/src/Vrfdkg.types";
+import { Member } from "@oraichain/vrf-contracts-sdk/build/Vrfdkg.types";
+import { VrfdkgClient } from "@oraichain/vrf-contracts-sdk";
 
 export default class Runner {
   runnerName!: string;

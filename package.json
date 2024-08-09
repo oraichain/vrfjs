@@ -7,6 +7,7 @@
   "bin": "index.js",
   "scripts": {
     "start": "node index.js",
+    "request-random": "tsx vrf.ts",
     "prepackage": "mkdir -p dist && cp package.json -r pkg *.js dist",
     "package": "pkg dist --compress Brotli"
   },
@@ -18,7 +19,9 @@
     "@cosmjs/crypto": "^0.31.3",
     "@cosmjs/proto-signing": "^0.31.3",
     "@cosmjs/stargate": "^0.31.3",
+    "@oraichain/common": "^1.0.3",
     "@oraichain/cosmosjs": "0.0.70",
+    "@oraichain/vrf-contracts-sdk": "^1.0.0",
     "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
     "futoin-hkdf": "^1.4.2",
@@ -29,6 +32,7 @@
     "@oraichain/cw-simulate": "^2.8.97",
     "pkg": "^5.8.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.17.0",
     "typescript": "^5.5.4"
   },
   "pkg": {
